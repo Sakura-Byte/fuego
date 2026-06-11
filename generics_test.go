@@ -22,9 +22,21 @@ type GenericResponse[Res any] struct {
 	Message    string `json:"message"`
 }
 
+type GenericEnvelope[Data any] struct {
+	Data Data `json:"data"`
+}
+
 type User struct {
 	ID   int    `json:"id"`
 	Name string `json:"name" validate:"required,min=1,max=100" example:"Napoleon"`
+}
+
+type GenericBook struct {
+	Title string `json:"title"`
+}
+
+type GenericMovie struct {
+	Name string `json:"name"`
 }
 
 func TestGenericReturnType(t *testing.T) {
@@ -89,6 +101,31 @@ func TestGenericReturnType(t *testing.T) {
 		response := res.Body.String()
 		require.JSONEq(t, `{"title":"Validation Error","detail":"Name is required","errors":[{"more":{"field":"Name","nsField":"GenericInput[github.com/go-fuego/fuego_test.User].Data.Name","param":"","tag":"required","value":""},"name":"GenericInput[github.com/go-fuego/fuego_test.User].Data.Name","reason":"Key: 'GenericInput[github.com/go-fuego/fuego_test.User].Data.Name' Error:Field validation for 'Name' failed on the 'required' tag"}],"status":400}`, response)
 	})
+}
+
+func TestGenericSliceEnvelopeSchemasAreDistinct(t *testing.T) {
+	s := fuego.NewServer()
+	bookRoute := fuego.Get(s, "/books", func(c fuego.ContextNoBody) (*GenericEnvelope[[]GenericBook], error) {
+		return &GenericEnvelope[[]GenericBook]{Data: []GenericBook{{Title: "Dune"}}}, nil
+	})
+	movieRoute := fuego.Get(s, "/movies", func(c fuego.ContextNoBody) (*GenericEnvelope[[]GenericMovie], error) {
+		return &GenericEnvelope[[]GenericMovie]{Data: []GenericMovie{{Name: "Arrival"}}}, nil
+	})
+
+	bookSchema := bookRoute.Operation.Responses.Value("200").Value.Content["application/json"].Schema
+	movieSchema := movieRoute.Operation.Responses.Value("200").Value.Content["application/json"].Schema
+
+	require.NotEmpty(t, bookSchema.Ref)
+	require.NotEmpty(t, movieSchema.Ref)
+	require.NotEqual(t, bookSchema.Ref, movieSchema.Ref)
+	require.NotContains(t, bookSchema.Ref, "GenericEnvelope_[")
+	require.NotContains(t, movieSchema.Ref, "GenericEnvelope_[")
+
+	bookComponent := s.OpenAPI.Description().Components.Schemas[strings.TrimPrefix(bookSchema.Ref, "#/components/schemas/")].Value
+	movieComponent := s.OpenAPI.Description().Components.Schemas[strings.TrimPrefix(movieSchema.Ref, "#/components/schemas/")].Value
+
+	require.Equal(t, "#/components/schemas/GenericBook", bookComponent.Properties["data"].Value.Items.Ref)
+	require.Equal(t, "#/components/schemas/GenericMovie", movieComponent.Properties["data"].Value.Items.Ref)
 }
 
 func TestSlices(t *testing.T) {

@@ -524,12 +524,13 @@ type OpenAPIDescriptioner interface {
 func (openAPI *OpenAPI) resolveSchemaRefs() {
 	schemas := openAPI.Description().Components.Schemas
 	prefix := "#/components/schemas/"
+	visited := map[*openapi3.Schema]struct{}{}
 
 	for _, schemaRef := range schemas {
 		if schemaRef == nil || schemaRef.Value == nil {
 			continue
 		}
-		resolveRefsInSchema(schemaRef.Value, schemas, prefix)
+		resolveRefsInSchema(schemaRef.Value, schemas, prefix, visited)
 	}
 
 	// Also resolve refs in path operation schemas (request/response bodies)
@@ -540,7 +541,7 @@ func (openAPI *OpenAPI) resolveSchemaRefs() {
 				if op.RequestBody != nil && op.RequestBody.Value != nil {
 					for _, t := range op.RequestBody.Value.Content {
 						if t.Schema != nil {
-							resolveRef(t.Schema, schemas, prefix)
+							resolveRef(t.Schema, schemas, prefix, visited)
 						}
 					}
 				}
@@ -552,7 +553,7 @@ func (openAPI *OpenAPI) resolveSchemaRefs() {
 					}
 					for _, t := range resp.Value.Content {
 						if t.Schema != nil {
-							resolveRef(t.Schema, schemas, prefix)
+							resolveRef(t.Schema, schemas, prefix, visited)
 						}
 					}
 				}
@@ -561,40 +562,56 @@ func (openAPI *OpenAPI) resolveSchemaRefs() {
 	}
 }
 
-func resolveRefsInSchema(schema *openapi3.Schema, schemas openapi3.Schemas, prefix string) {
+func resolveRefsInSchema(schema *openapi3.Schema, schemas openapi3.Schemas, prefix string, visited map[*openapi3.Schema]struct{}) {
+	if schema == nil {
+		return
+	}
+	if _, ok := visited[schema]; ok {
+		return
+	}
+	visited[schema] = struct{}{}
+
 	for _, propRef := range schema.Properties {
-		resolveRef(propRef, schemas, prefix)
+		resolveRef(propRef, schemas, prefix, visited)
 	}
 
 	if schema.Items != nil {
-		resolveRef(schema.Items, schemas, prefix)
+		resolveRef(schema.Items, schemas, prefix, visited)
 	}
 	if schema.AdditionalProperties.Schema != nil {
-		resolveRef(schema.AdditionalProperties.Schema, schemas, prefix)
+		resolveRef(schema.AdditionalProperties.Schema, schemas, prefix, visited)
 	}
 }
 
-func resolveRef(ref *openapi3.SchemaRef, schemas openapi3.Schemas, prefix string) {
+func resolveRef(ref *openapi3.SchemaRef, schemas openapi3.Schemas, prefix string, visited map[*openapi3.Schema]struct{}) {
 	if ref == nil {
 		return
 	}
-	if strings.HasPrefix(ref.Ref, prefix) && ref.Value == nil {
+	if strings.HasPrefix(ref.Ref, prefix) {
 		name := strings.TrimPrefix(ref.Ref, prefix)
 		if s, ok := schemas[name]; ok {
-			ref.Value = s.Value
+			if ref.Value == nil {
+				ref.Value = s.Value
+			} else if s.Value == nil {
+				s.Value = ref.Value
+			}
 		} else {
-			// When a schema reference cannot be resolved,
-			// create an empty schema. This occurs in when a nested struct
-			// contains no properties such a nested struct with one field of
-			// `json:"-"`. In this case kin-openapi will still create reference
-			// #/components/schemas/mySchema. We simply 0 it out as nothing
-			// will marshal anyways.
-			ref.Ref = ""
-			ref.Value = &openapi3.Schema{}
+			if ref.Value != nil {
+				schemas[name] = &openapi3.SchemaRef{Value: ref.Value}
+			} else {
+				// When a schema reference cannot be resolved,
+				// create an empty schema. This occurs in when a nested struct
+				// contains no properties such a nested struct with one field of
+				// `json:"-"`. In this case kin-openapi will still create reference
+				// #/components/schemas/mySchema. We simply 0 it out as nothing
+				// will marshal anyways.
+				ref.Ref = ""
+				ref.Value = &openapi3.Schema{}
+			}
 		}
 	}
 	if ref.Value != nil {
-		resolveRefsInSchema(ref.Value, schemas, prefix)
+		resolveRefsInSchema(ref.Value, schemas, prefix, visited)
 	}
 }
 

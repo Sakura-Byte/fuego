@@ -366,6 +366,26 @@ func TestServer_generateOpenAPI(t *testing.T) {
 	})
 }
 
+func TestOutputOpenAPISpecResolvesRecursiveSchemas(t *testing.T) {
+	type RecursiveNode struct {
+		Name     string          `json:"name"`
+		Children []RecursiveNode `json:"children,omitempty"`
+	}
+
+	s := NewServer(WithEngineOptions(WithOpenAPIConfig(OpenAPIConfig{
+		DisableLocalSave: true,
+		DisableMessages:  true,
+	})))
+	Get(s, "/tree", func(ContextNoBody) (RecursiveNode, error) {
+		return RecursiveNode{}, nil
+	})
+
+	spec := s.OutputOpenAPISpec()
+	nodeSchema := spec.Components.Schemas["RecursiveNode"].Value
+	require.NotNil(t, nodeSchema)
+	require.Equal(t, "#/components/schemas/RecursiveNode", nodeSchema.Properties["children"].Value.Items.Ref)
+}
+
 func TestServer_OutputOpenApiSpec(t *testing.T) {
 	docPath := "doc/openapi.json"
 	t.Run("base", func(t *testing.T) {
