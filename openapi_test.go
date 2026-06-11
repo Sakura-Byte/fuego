@@ -733,6 +733,23 @@ func TestPrivateFieldInStruct(t *testing.T) {
 	handler.AssertEmpty() // No warning "Property not found in schema" for the 'password' field
 }
 
+func TestSchemaCustomizerFormatTag(t *testing.T) {
+	type Upload struct {
+		File string `json:"file" validate:"required" format:"binary"`
+	}
+
+	s := NewServer()
+	Post(s, "/upload", func(c ContextWithBody[Upload]) (Upload, error) { return c.Body() })
+
+	openAPISpec := s.OutputOpenAPISpec()
+	uploadSchema := openAPISpec.Components.Schemas["Upload"].Value
+	fileSchema := uploadSchema.Properties["file"].Value
+
+	require.True(t, fileSchema.Type.Is(openapi3.TypeString))
+	require.Equal(t, "binary", fileSchema.Format)
+	require.Contains(t, uploadSchema.Required, "file")
+}
+
 func TestSetGeneratorSchemaCustomizer(t *testing.T) {
 	// A custom function that looks for a custom tag and updates the description
 	customTagParser := func(name string, t reflect.Type, tag reflect.StructTag, schema *openapi3.Schema) error {

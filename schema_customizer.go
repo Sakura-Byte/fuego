@@ -162,11 +162,20 @@ func parseDescription(tag reflect.StructTag, schema *openapi3.Schema) {
 	}
 }
 
+// parseFormat parses the "format" tag and adds it to the schema format.
+func parseFormat(tag reflect.StructTag, schema *openapi3.Schema) {
+	format, ok := tag.Lookup("format")
+	if ok {
+		schema.Format = format
+	}
+}
+
 // SchemaCustomizer parses struct tags and modifies the schema using kin-openapi3gen's
 // schema customization functionality.
 // It adds the following struct tags (tag => OpenAPI schema field):
 // - description => description
 // - example => example
+// - format => format
 // - json => nullable (if contains omitempty)
 // - validate:
 //   - required => required
@@ -183,6 +192,9 @@ func SchemaCustomizer(name string, t reflect.Type, tag reflect.StructTag, schema
 
 	// Description
 	parseDescription(tag, schema)
+
+	// Format
+	parseFormat(tag, schema)
 
 	// After we are done parsing tags, get the required tags
 	determineFieldConstraints(t, schema)
