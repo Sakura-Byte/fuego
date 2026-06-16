@@ -8,7 +8,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/stretchr/testify/require"
 
-	"github.com/go-fuego/fuego"
+	"github.com/Sakura-Byte/fuego"
 )
 
 type GenericInput[T any] struct {
@@ -99,7 +99,7 @@ func TestGenericReturnType(t *testing.T) {
 
 		require.Equal(t, 400, res.Code)
 		response := res.Body.String()
-		require.JSONEq(t, `{"title":"Validation Error","detail":"Name is required","errors":[{"more":{"field":"Name","nsField":"GenericInput[github.com/go-fuego/fuego_test.User].Data.Name","param":"","tag":"required","value":""},"name":"GenericInput[github.com/go-fuego/fuego_test.User].Data.Name","reason":"Key: 'GenericInput[github.com/go-fuego/fuego_test.User].Data.Name' Error:Field validation for 'Name' failed on the 'required' tag"}],"status":400}`, response)
+		require.JSONEq(t, `{"title":"Validation Error","detail":"Name is required","errors":[{"more":{"field":"Name","nsField":"GenericInput[github.com/Sakura-Byte/fuego_test.User].Data.Name","param":"","tag":"required","value":""},"name":"GenericInput[github.com/Sakura-Byte/fuego_test.User].Data.Name","reason":"Key: 'GenericInput[github.com/Sakura-Byte/fuego_test.User].Data.Name' Error:Field validation for 'Name' failed on the 'required' tag"}],"status":400}`, response)
 	})
 }
 

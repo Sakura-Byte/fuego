@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/thejerf/slogassert"
 
-	"github.com/go-fuego/fuego"
-	"github.com/go-fuego/fuego/option"
-	"github.com/go-fuego/fuego/param"
+	"github.com/Sakura-Byte/fuego"
+	"github.com/Sakura-Byte/fuego/option"
+	"github.com/Sakura-Byte/fuego/param"
 )
 
 // dummyMiddleware sets the X-Test header on the request and the X-Test-Response header on the response.
@@ -248,7 +248,7 @@ func TestOpenAPI(t *testing.T) {
 		)
 
 		require.Equal(t, "test summary", route.Operation.Summary)
-		require.Equal(t, "#### Controller: \n\n`github.com/go-fuego/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `github.com/go-fuego/fuego.defaultLogger.middleware`\n\n---\n\ntest description", route.Operation.Description)
+		require.Equal(t, "#### Controller: \n\n`github.com/Sakura-Byte/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `github.com/Sakura-Byte/fuego.defaultLogger.middleware`\n\n---\n\ntest description", route.Operation.Description)
 		require.Equal(t, []string{"first-tag", "second-tag"}, route.Operation.Tags)
 		require.True(t, route.Operation.Deprecated)
 	})
@@ -891,7 +891,7 @@ func TestOptionDescription(t *testing.T) {
 			option.Description("test description"),
 		)
 
-		require.Equal(t, "#### Controller: \n\n`github.com/go-fuego/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `github.com/go-fuego/fuego.defaultLogger.middleware`\n\n---\n\ntest description", route.Operation.Description)
+		require.Equal(t, "#### Controller: \n\n`github.com/Sakura-Byte/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `github.com/Sakura-Byte/fuego.defaultLogger.middleware`\n\n---\n\ntest description", route.Operation.Description)
 	})
 
 	t.Run("Override Fuego's description for the route", func(t *testing.T) {
@@ -912,7 +912,7 @@ func TestOptionDescription(t *testing.T) {
 			option.Description("another description"),
 		)
 
-		require.Equal(t, "#### Controller: \n\n`github.com/go-fuego/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `github.com/go-fuego/fuego.defaultLogger.middleware`\n- `github.com/go-fuego/fuego_test.dummyMiddleware`\n\n---\n\nanother description", route.Operation.Description)
+		require.Equal(t, "#### Controller: \n\n`github.com/Sakura-Byte/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `github.com/Sakura-Byte/fuego.defaultLogger.middleware`\n- `github.com/Sakura-Byte/fuego_test.dummyMiddleware`\n\n---\n\nanother description", route.Operation.Description)
 	})
 
 	t.Run("Add description to the route, route middleware is included", func(t *testing.T) {
@@ -930,7 +930,7 @@ func TestOptionDescription(t *testing.T) {
 			option.Middleware(dummyMiddleware), // After the description (6th middleware)
 			option.Middleware(dummyMiddleware), // 7th middleware, should not be included
 		)
-		require.Equal(t, "#### Controller: \n\n`github.com/go-fuego/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `github.com/go-fuego/fuego.defaultLogger.middleware`\n- `github.com/go-fuego/fuego_test.dummyMiddleware`\n- `github.com/go-fuego/fuego_test.dummyMiddleware`\n- `github.com/go-fuego/fuego_test.dummyMiddleware`\n- `github.com/go-fuego/fuego_test.dummyMiddleware`\n\n---\n\nanother description", route.Operation.Description)
+		require.Equal(t, "#### Controller: \n\n`github.com/Sakura-Byte/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `github.com/Sakura-Byte/fuego.defaultLogger.middleware`\n- `github.com/Sakura-Byte/fuego_test.dummyMiddleware`\n- `github.com/Sakura-Byte/fuego_test.dummyMiddleware`\n- `github.com/Sakura-Byte/fuego_test.dummyMiddleware`\n- `github.com/Sakura-Byte/fuego_test.dummyMiddleware`\n\n---\n\nanother description", route.Operation.Description)
 	})
 
 	t.Run("Disable middleware section", func(t *testing.T) {
@@ -948,7 +948,7 @@ func TestOptionDescription(t *testing.T) {
 			option.Description("test description"),
 		)
 
-		require.Equal(t, "#### Controller: \n\n`github.com/go-fuego/fuego_test.helloWorld`\n\n---\n\ntest description", route.Operation.Description)
+		require.Equal(t, "#### Controller: \n\n`github.com/Sakura-Byte/fuego_test.helloWorld`\n\n---\n\ntest description", route.Operation.Description)
 	})
 	t.Run("Disable middleware section and shorten paths", func(t *testing.T) {
 		s := fuego.NewServer(
@@ -966,7 +966,7 @@ func TestOptionDescription(t *testing.T) {
 			option.Description("test description"),
 		)
 
-		require.Equal(t, "#### Controller: \n\n`github.com/go-fuego/fuego_test.helloWorld`\n\n---\n\ntest description", route.Operation.Description)
+		require.Equal(t, "#### Controller: \n\n`github.com/Sakura-Byte/fuego_test.helloWorld`\n\n---\n\ntest description", route.Operation.Description)
 	})
 	t.Run("Shorten middleware paths", func(t *testing.T) {
 		s := fuego.NewServer(
@@ -982,7 +982,7 @@ func TestOptionDescription(t *testing.T) {
 		route := fuego.Get(s, "/test", helloWorld,
 			option.Description("test description"),
 		)
-		require.Equal(t, "#### Controller: \n\n`github.com/go-fuego/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `fuego.defaultLogger.middleware`\n\n---\n\ntest description", route.Operation.Description)
+		require.Equal(t, "#### Controller: \n\n`github.com/Sakura-Byte/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `fuego.defaultLogger.middleware`\n\n---\n\ntest description", route.Operation.Description)
 	})
 	t.Run("Limit the number of middlewares", func(t *testing.T) {
 		s := fuego.NewServer(
@@ -1002,7 +1002,7 @@ func TestOptionDescription(t *testing.T) {
 			option.Middleware(dummyMiddleware),
 		)
 
-		require.Equal(t, "#### Controller: \n\n`github.com/go-fuego/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `github.com/go-fuego/fuego.defaultLogger.middleware`\n- `github.com/go-fuego/fuego_test.dummyMiddleware`\n- more middleware…\n\n---\n\ntest description", route.Operation.Description)
+		require.Equal(t, "#### Controller: \n\n`github.com/Sakura-Byte/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `github.com/Sakura-Byte/fuego.defaultLogger.middleware`\n- `github.com/Sakura-Byte/fuego_test.dummyMiddleware`\n- more middleware…\n\n---\n\ntest description", route.Operation.Description)
 	})
 	t.Run("Default Values", func(t *testing.T) {
 		s := fuego.NewServer(
@@ -1017,7 +1017,7 @@ func TestOptionDescription(t *testing.T) {
 			option.Description("test description"),
 		)
 		require.Equal(t, 6, route.MiddlewareConfig.MaxNumberOfMiddlewares)
-		require.Equal(t, "#### Controller: \n\n`github.com/go-fuego/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `github.com/go-fuego/fuego.defaultLogger.middleware`\n\n---\n\ntest description", route.Operation.Description)
+		require.Equal(t, "#### Controller: \n\n`github.com/Sakura-Byte/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `github.com/Sakura-Byte/fuego.defaultLogger.middleware`\n\n---\n\ntest description", route.Operation.Description)
 	})
 	t.Run("Limit the number of middlewares and shorten paths", func(t *testing.T) {
 		s := fuego.NewServer(
@@ -1038,7 +1038,7 @@ func TestOptionDescription(t *testing.T) {
 			option.Middleware(dummyMiddleware),
 		)
 
-		require.Equal(t, "#### Controller: \n\n`github.com/go-fuego/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `fuego.defaultLogger.middleware`\n- `fuego_test.dummyMiddleware`\n- `fuego_test.dummyMiddleware`\n- more middleware…\n\n---\n\ntest description", route.Operation.Description)
+		require.Equal(t, "#### Controller: \n\n`github.com/Sakura-Byte/fuego_test.helloWorld`\n\n#### Middlewares:\n\n- `fuego.defaultLogger.middleware`\n- `fuego_test.dummyMiddleware`\n- `fuego_test.dummyMiddleware`\n- more middleware…\n\n---\n\ntest description", route.Operation.Description)
 	})
 }
 

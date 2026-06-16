@@ -1,4 +1,4 @@
-module github.com/go-fuego/fuego
+module github.com/Sakura-Byte/fuego
 
 go 1.26.2
 

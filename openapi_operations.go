@@ -6,7 +6,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 
-	"github.com/go-fuego/fuego/internal"
+	"github.com/Sakura-Byte/fuego/internal"
 )
 
 type ParamType = internal.ParamType // Query, Header, Cookie

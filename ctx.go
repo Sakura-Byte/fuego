@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-fuego/fuego/internal"
+	"github.com/Sakura-Byte/fuego/internal"
 )
 
 const (

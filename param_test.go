@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/go-fuego/fuego"
-	"github.com/go-fuego/fuego/option"
+	"github.com/Sakura-Byte/fuego"
+	"github.com/Sakura-Byte/fuego/option"
 )
 
 func TestParams(t *testing.T) {

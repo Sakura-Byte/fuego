@@ -9,9 +9,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/go-fuego/fuego"
-	"github.com/go-fuego/fuego/option"
-	"github.com/go-fuego/fuego/param"
+	"github.com/Sakura-Byte/fuego"
+	"github.com/Sakura-Byte/fuego/option"
+	"github.com/Sakura-Byte/fuego/param"
 )
 
 func TestParam(t *testing.T) {

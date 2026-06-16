@@ -617,8 +617,8 @@ func resolveRef(ref *openapi3.SchemaRef, schemas openapi3.Schemas, prefix string
 
 // Transform the type name to a more readable & valid OpenAPI 3 format.
 // Useful for generics.
-// Example: "BareSuccessResponse[github.com/go-fuego/fuego/examples/petstore/models.Pets]" -> "BareSuccessResponse_models.Pets"
-// Example: "BareSuccessResponse[[]github.com/go-fuego/fuego/examples/petstore/models.Pets]" -> "BareSuccessResponse_Array-models.Pets"
+// Example: "BareSuccessResponse[github.com/Sakura-Byte/fuego/examples/petstore/models.Pets]" -> "BareSuccessResponse_models.Pets"
+// Example: "BareSuccessResponse[[]github.com/Sakura-Byte/fuego/examples/petstore/models.Pets]" -> "BareSuccessResponse_Array-models.Pets"
 func transformTypeName(s string) string {
 	start := strings.Index(s, "[")
 	if start == -1 {

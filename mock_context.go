@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-fuego/fuego/internal"
+	"github.com/Sakura-Byte/fuego/internal"
 )
 
 // MockContext provides a framework-agnostic implementation of ContextWithBody

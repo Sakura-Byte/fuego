@@ -2,7 +2,7 @@
 package option
 
 import (
-	"github.com/go-fuego/fuego"
+	"github.com/Sakura-Byte/fuego"
 )
 
 // Group allows to group routes under a common path.
