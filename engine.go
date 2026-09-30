@@ -47,6 +47,7 @@ type Engine struct {
 
 	requestContentTypes  []string
 	responseContentTypes []string
+	disableFlowHeaders   bool
 }
 
 type OpenAPIConfig struct {
@@ -113,6 +114,7 @@ func WithResponseContentType(consumes ...string) func(*Engine) {
 }
 
 type MiddlewareConfig struct {
+	DisableControllerSection bool
 	DisableMiddlewareSection bool
 	MaxNumberOfMiddlewares   int
 	ShortMiddlewaresPaths    bool
@@ -120,6 +122,7 @@ type MiddlewareConfig struct {
 
 func WithMiddlewareConfig(cfg MiddlewareConfig) EngineOption {
 	return func(e *Engine) {
+		e.OpenAPI.Config.MiddlewareConfig.DisableControllerSection = cfg.DisableControllerSection
 		e.OpenAPI.Config.MiddlewareConfig.DisableMiddlewareSection = cfg.DisableMiddlewareSection
 		e.OpenAPI.Config.MiddlewareConfig.ShortMiddlewaresPaths = cfg.ShortMiddlewaresPaths
 		if cfg.MaxNumberOfMiddlewares != 0 {
@@ -183,6 +186,12 @@ func WithErrorHandler(errorHandler func(ctx context.Context, err error) error) E
 
 		e.ErrorHandler = errorHandler
 	}
+}
+
+// WithoutFlowHeaders disables the default headers added by Fuego in the Flow
+// (e.g. X-Powered-By, Server-Timing).
+func WithoutFlowHeaders() EngineOption {
+	return func(e *Engine) { e.disableFlowHeaders = true }
 }
 
 // DisableErrorHandler overrides ErrorHandler with a simple pass-through

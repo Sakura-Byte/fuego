@@ -20,6 +20,7 @@ import (
 //   - min=1 => minLength=1 (for strings)
 //   - max=100 => max=100 (for integers)
 //   - max=100 => maxLength=100 (for strings)
+//   - oneof=a b c => enum=[a,b,c] (matches go-playground/validator)
 func parseValidate(tag reflect.StructTag, schema *openapi3.Schema) {
 	validateTag, ok := tag.Lookup("validate")
 	if !ok {
@@ -56,6 +57,33 @@ func parseValidate(tag reflect.StructTag, schema *openapi3.Schema) {
 				schema.MaxLength = &maxPtr
 			}
 		}
+		if rest, ok := strings.CutPrefix(validateTag, "oneof="); ok {
+			values := strings.Fields(rest)
+			if len(values) == 0 {
+				continue
+			}
+			schema.Enum = make([]any, 0, len(values))
+			for _, v := range values {
+				switch {
+				case schema.Type.Is(openapi3.TypeInteger):
+					n, err := strconv.Atoi(v)
+					if err != nil {
+						slog.Warn("oneof value might be incorrect (should be integer)", "value", v, "error", err)
+						continue
+					}
+					schema.Enum = append(schema.Enum, n)
+				case schema.Type.Is(openapi3.TypeNumber):
+					n, err := strconv.ParseFloat(v, 64)
+					if err != nil {
+						slog.Warn("oneof value might be incorrect (should be number)", "value", v, "error", err)
+						continue
+					}
+					schema.Enum = append(schema.Enum, n)
+				default:
+					schema.Enum = append(schema.Enum, v)
+				}
+			}
+		}
 	}
 }
 
@@ -69,9 +97,7 @@ func determineFieldConstraints(t reflect.Type, schema *openapi3.Schema) {
 	if t.Kind() != reflect.Struct {
 		return
 	}
-	for i := 0; i < t.NumField(); i++ {
-		f := t.Field(i)
-
+	for f := range t.Fields() {
 		// Recurse into embedded struct fields
 		if f.Anonymous {
 			ft := f.Type
@@ -112,7 +138,10 @@ func determineFieldConstraints(t reflect.Type, schema *openapi3.Schema) {
 			continue
 		}
 		if isReferenceType(f.Type.Kind()) && !hasRequired {
-			prop.Value.Nullable = true
+			if !prop.Value.Type.Includes("null") {
+				types := openapi3.Types(append(prop.Value.Type.Slice(), "null"))
+				prop.Value.Type = &types
+			}
 		}
 	}
 	sort.Strings(schema.Required)

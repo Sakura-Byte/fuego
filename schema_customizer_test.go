@@ -73,7 +73,7 @@ func TestDetermineFieldConstraints(t *testing.T) {
 		}
 		determineFieldConstraints(reflect.TypeFor[S](), schema)
 		assert.Contains(t, schema.Required, "name")
-		assert.False(t, schema.Properties["name"].Value.Nullable)
+		assert.False(t, schema.Properties["name"].Value.Type.Includes("null"))
 	})
 
 	t.Run("slice field is nullable", func(t *testing.T) {
@@ -86,7 +86,7 @@ func TestDetermineFieldConstraints(t *testing.T) {
 			},
 		}
 		determineFieldConstraints(reflect.TypeFor[S](), schema)
-		assert.True(t, schema.Properties["items"].Value.Nullable)
+		assert.True(t, schema.Properties["items"].Value.Type.Includes("null"))
 	})
 
 	t.Run("map field is nullable", func(t *testing.T) {
@@ -99,7 +99,7 @@ func TestDetermineFieldConstraints(t *testing.T) {
 			},
 		}
 		determineFieldConstraints(reflect.TypeFor[S](), schema)
-		assert.True(t, schema.Properties["meta"].Value.Nullable)
+		assert.True(t, schema.Properties["meta"].Value.Type.Includes("null"))
 	})
 
 	t.Run("string field is not nullable", func(t *testing.T) {
@@ -112,7 +112,7 @@ func TestDetermineFieldConstraints(t *testing.T) {
 			},
 		}
 		determineFieldConstraints(reflect.TypeFor[S](), schema)
-		assert.False(t, schema.Properties["name"].Value.Nullable)
+		assert.False(t, schema.Properties["name"].Value.Type.Includes("null"))
 	})
 
 	t.Run("required fields are sorted", func(t *testing.T) {
@@ -131,5 +131,37 @@ func TestDetermineFieldConstraints(t *testing.T) {
 		determineFieldConstraints(reflect.TypeFor[S](), schema)
 		require.Len(t, schema.Required, 3)
 		assert.Equal(t, []string{"apple", "mango", "zebra"}, schema.Required)
+	})
+}
+
+func TestParseValidateOneof(t *testing.T) {
+	t.Run("string oneof adds enum values", func(t *testing.T) {
+		schema := &openapi3.Schema{Type: &openapi3.Types{openapi3.TypeString}}
+		parseValidate(reflect.StructTag(`validate:"oneof=a b c"`), schema)
+		assert.Equal(t, []any{"a", "b", "c"}, schema.Enum)
+	})
+
+	t.Run("integer oneof adds typed enum values", func(t *testing.T) {
+		schema := &openapi3.Schema{Type: &openapi3.Types{openapi3.TypeInteger}}
+		parseValidate(reflect.StructTag(`validate:"oneof=1 2 3"`), schema)
+		assert.Equal(t, []any{1, 2, 3}, schema.Enum)
+	})
+
+	t.Run("number oneof adds typed enum values", func(t *testing.T) {
+		schema := &openapi3.Schema{Type: &openapi3.Types{openapi3.TypeNumber}}
+		parseValidate(reflect.StructTag(`validate:"oneof=1.5 2.5"`), schema)
+		assert.Equal(t, []any{1.5, 2.5}, schema.Enum)
+	})
+
+	t.Run("oneof works alongside required", func(t *testing.T) {
+		schema := &openapi3.Schema{Type: &openapi3.Types{openapi3.TypeString}}
+		parseValidate(reflect.StructTag(`validate:"required,oneof=foo bar"`), schema)
+		assert.Equal(t, []any{"foo", "bar"}, schema.Enum)
+	})
+
+	t.Run("no oneof leaves enum nil", func(t *testing.T) {
+		schema := &openapi3.Schema{Type: &openapi3.Types{openapi3.TypeString}}
+		parseValidate(reflect.StructTag(`validate:"required"`), schema)
+		assert.Nil(t, schema.Enum)
 	})
 }
