@@ -34,6 +34,9 @@ type OpenAPIParam struct {
 	// If empty, it is required for 200 status codes.
 	StatusCodes []int
 
+	// Enum lists the values the parameter accepts. Empty means any value.
+	Enum []any
+
 	Required bool
 	Nullable bool
 }

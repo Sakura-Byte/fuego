@@ -274,6 +274,9 @@ func buildParam(name string, options ...ParamOption) (OpenAPIParam, *openapi3.Pa
 	if param.GoType != "" {
 		openapiParam.Schema.Value.Type = &openapi3.Types{param.GoType}
 	}
+	if len(param.Enum) > 0 {
+		openapiParam.Schema.Value.Enum = param.Enum
+	}
 	openapiParam.Schema.Value.Default = panicsIfNotCorrectType(openapiParam, param.Default)
 
 	if param.Required {

@@ -326,6 +326,11 @@ func (route *Route[ResponseBody, RequestBody, Params]) RegisterParams() error {
 				params = append(params, ParamDefault(parsedDefault))
 			}
 
+			// Types listing their allowed values with EnumValues() are documented as an OpenAPI enum.
+			if values := enumValues(field.Type); len(values) > 0 {
+				params = append(params, ParamEnum(values...))
+			}
+
 			description, _ := field.Tag.Lookup("description")
 			if headerKey, ok := field.Tag.Lookup("header"); ok {
 				OptionHeader(headerKey, description, params...)(&route.BaseRoute)
@@ -644,3 +649,39 @@ func transformTypeName(s string) string {
 }
 
 var importPathRe = regexp.MustCompile(`\w+(?:\.\w+)*/(?:\w[\w.-]*/)*`)
+
+type (
+	stringEnum interface{ EnumValues() []string }
+	intEnum    interface{ EnumValues() []int }
+)
+
+var (
+	stringEnumType = reflect.TypeFor[stringEnum]()
+	intEnumType    = reflect.TypeFor[intEnum]()
+)
+
+// enumValues returns the allowed values of a type implementing EnumValues() []string or EnumValues() []int.
+func enumValues(t reflect.Type) []any {
+	for t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	switch {
+	case t.Implements(stringEnumType):
+		values := reflect.Zero(t).Interface().(stringEnum).EnumValues()
+		enum := make([]any, len(values))
+		for i, value := range values {
+			enum[i] = value
+		}
+		return enum
+	case t.Implements(intEnumType):
+		values := reflect.Zero(t).Interface().(intEnum).EnumValues()
+		enum := make([]any, len(values))
+		for i, value := range values {
+			enum[i] = value
+		}
+		return enum
+	default:
+		return nil
+	}
+}

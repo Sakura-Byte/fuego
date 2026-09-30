@@ -64,3 +64,10 @@ func ParamStatusCodes(codes ...int) ParamOption {
 		param.StatusCodes = codes
 	}
 }
+
+// ParamEnum restricts the values of the parameter to the given ones, documented as the OpenAPI "enum".
+func ParamEnum(values ...any) ParamOption {
+	return func(param *OpenAPIParam) {
+		param.Enum = values
+	}
+}
