@@ -213,6 +213,8 @@ func (e *Engine) OutputOpenAPISpec() *openapi3.T {
 	// resolve schema refs after initial
 	// spec generation
 	e.OpenAPI.resolveSchemaRefs()
+	// The document is OpenAPI 3.1: express nullability as a "null" type
+	normalizeNullableForOpenAPI31(e.OpenAPI.Description())
 
 	// Validate
 	err := e.OpenAPI.Description().Validate(context.Background())
