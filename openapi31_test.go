@@ -88,3 +88,21 @@ func TestWithDefaultErrorResponseType(t *testing.T) {
 		require.Equal(t, "#/components/schemas/customErrorEnvelope", ref)
 	}
 }
+
+func TestResponseOptionsUseEngineContentTypes(t *testing.T) {
+	s := NewServer(WithEngineOptions(
+		WithResponseContentType("application/json"),
+		WithOpenAPIConfig(OpenAPIConfig{DisableLocalSave: true, DisableMessages: true}),
+	))
+	Get(s, "/thing", func(c ContextNoBody) (string, error) { return "", nil },
+		OptionAddResponse(409, "Conflict", Response{Type: HTTPError{}}),
+		OptionDefaultResponse("Error", Response{Type: HTTPError{}}),
+	)
+
+	responses := s.OutputOpenAPISpec().Paths.Find("/thing").Get.Responses
+	for _, status := range []string{"400", "409", "500", "default"} {
+		content := responses.Value(status).Value.Content
+		require.Contains(t, content, "application/json", status)
+		require.NotContains(t, content, "application/xml", status)
+	}
+}

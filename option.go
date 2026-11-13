@@ -435,9 +435,14 @@ type Response struct {
 // OptionAddResponse adds a response to a route by status code
 // It replaces any existing response set by any status code, this will override 200.
 // Required: Response.Type must be set
-// Optional: Response.ContentTypes will default to `application/json` and `application/xml` if not set
+// Optional: Response.ContentTypes will default to the engine's response content types
+// (see [WithResponseContentType]), or `application/json` and `application/xml` if none are set
 func OptionAddResponse(code int, description string, response Response) RouteOption {
 	return func(r *BaseRoute) {
+		response := response
+		if len(response.ContentTypes) == 0 {
+			response.ContentTypes = r.ResponseContentTypes
+		}
 		if r.Operation.Responses == nil {
 			r.Operation.Responses = openapi3.NewResponses()
 		}
@@ -463,9 +468,14 @@ type RequestBody struct {
 // If two of the same ContentTypes are provided the last provided will be
 // what is set in the spec.
 // Required: RequestBody.Type must be set
-// Optional: RequestBody.ContentTypes will default to `application/json` and `application/xml` if not set
+// Optional: RequestBody.ContentTypes will default to the engine's request content types
+// (see [WithRequestContentType]), or `application/json` and `application/xml` if none are set
 func OptionRequestBody(requestBody RequestBody) RouteOption {
 	return func(r *BaseRoute) {
+		requestBody := requestBody
+		if len(requestBody.ContentTypes) == 0 {
+			requestBody.ContentTypes = r.RequestContentTypes
+		}
 		if r.Operation.RequestBody == nil {
 			r.Operation.RequestBody = &openapi3.RequestBodyRef{
 				Value: r.OpenAPI.buildOpenapi3RequestBody(requestBody),
@@ -479,9 +489,14 @@ func OptionRequestBody(requestBody RequestBody) RouteOption {
 
 // OptionDefaultResponse adds a default response to a route
 // Required: Response.Type must be set
-// Optional: Response.ContentTypes will default to `application/json` and `application/xml` if not set
+// Optional: Response.ContentTypes will default to the engine's response content types
+// (see [WithResponseContentType]), or `application/json` and `application/xml` if none are set
 func OptionDefaultResponse(description string, response Response) RouteOption {
 	return func(r *BaseRoute) {
+		response := response
+		if len(response.ContentTypes) == 0 {
+			response.ContentTypes = r.ResponseContentTypes
+		}
 		if r.Operation.Responses == nil {
 			r.Operation.Responses = openapi3.NewResponses()
 		}
