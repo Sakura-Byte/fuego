@@ -67,3 +67,24 @@ func TestNormalizeNullableForOpenAPI31Composition(t *testing.T) {
 	require.Empty(t, untyped.AnyOf[0].Value.Description)
 	require.True(t, untyped.AnyOf[1].Value.Type.Includes(openapi3.TypeNull))
 }
+
+type customErrorEnvelope struct {
+	Error struct {
+		Code string `json:"code"`
+	} `json:"error"`
+}
+
+func TestWithDefaultErrorResponseType(t *testing.T) {
+	s := NewServer(
+		WithDefaultErrorResponseType(customErrorEnvelope{}),
+		WithEngineOptions(WithOpenAPIConfig(OpenAPIConfig{DisableLocalSave: true, DisableMessages: true})),
+	)
+	Get(s, "/thing", func(c ContextNoBody) (string, error) { return "", nil })
+
+	doc := s.OutputOpenAPISpec()
+	require.NotContains(t, doc.Components.Schemas, "HTTPError")
+	for _, status := range []string{"400", "500"} {
+		ref := doc.Paths.Find("/thing").Get.Responses.Value(status).Value.Content["application/json"].Schema.Ref
+		require.Equal(t, "#/components/schemas/customErrorEnvelope", ref)
+	}
+}

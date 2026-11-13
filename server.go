@@ -67,6 +67,9 @@ type Server struct {
 	disableStartupMessages bool
 	disableAutoGroupTags   bool
 	isTLS                  bool
+
+	// Type documented for the default 400 and 500 responses of every route.
+	defaultErrorResponseType any
 }
 
 // A ServerOption represents configures the behavior of a [Server].
@@ -108,15 +111,17 @@ func NewServer(options ...ServerOption) *Server {
 		WithMaxBodySize(maxBodySize),
 		WithSerializer(Send),
 		WithErrorSerializer(SendError),
-		WithRouteOptions(
-			OptionAddResponse(http.StatusBadRequest, "Bad Request _(validation or deserialization error)_", Response{Type: HTTPError{}}),
-			OptionAddResponse(http.StatusInternalServerError, "Internal Server Error _(panics)_", Response{Type: HTTPError{}}),
-		),
+		WithDefaultErrorResponseType(HTTPError{}),
 	}
 	options = append(defaultOptions[:], options...)
 	for _, option := range options {
 		option(s)
 	}
+	// Documented first, so route options can still override them.
+	s.routeOptions = append([]RouteOption{
+		OptionAddResponse(http.StatusBadRequest, "Bad Request _(validation or deserialization error)_", Response{Type: s.defaultErrorResponseType}),
+		OptionAddResponse(http.StatusInternalServerError, "Internal Server Error _(panics)_", Response{Type: s.defaultErrorResponseType}),
+	}, s.routeOptions...)
 
 	s.startTime = time.Now()
 
@@ -244,6 +249,14 @@ func WithSecurity(schemes openapi3.SecuritySchemes) ServerOption {
 		}
 		maps.Copy(s.OpenAPI.Description().Components.SecuritySchemes, schemes)
 	}
+}
+
+// WithDefaultErrorResponseType sets the type documented for the 400 and 500 responses
+// every route gets by default. Use it when a custom error handler or error serializer
+// sends errors in another shape than [HTTPError], so the spec matches the wire format
+// and does not carry an unused HTTPError schema.
+func WithDefaultErrorResponseType(errorType any) ServerOption {
+	return func(s *Server) { s.defaultErrorResponseType = errorType }
 }
 
 // WithoutAutoGroupTags disables the automatic grouping of routes by tags.
