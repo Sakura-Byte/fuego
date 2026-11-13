@@ -1068,7 +1068,7 @@ func TestOptionDescription(t *testing.T) {
 			option.Description("test description"),
 		)
 
-		require.Equal(t, "#### Middlewares:\n\n- `github.com/go-fuego/fuego.defaultLogger.middleware`\n\n---\n\ntest description", route.Operation.Description)
+		require.Equal(t, "#### Middlewares:\n\n- `github.com/Sakura-Byte/fuego.defaultLogger.middleware`\n\n---\n\ntest description", route.Operation.Description)
 	})
 	t.Run("Disable controller and middleware sections", func(t *testing.T) {
 		s := fuego.NewServer(
